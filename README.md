@@ -18,6 +18,11 @@ This README would normally document whatever steps are necessary to get your app
 * How to run tests
 * Deployment instructions
 
+  #### NEW EASY SETUP
+* Install docker and docker-compose
+* Navigate to directory containing docker-compose.yml
+* Run `docker-compose up`
+
 ### Contribution guidelines ###
 
 * Writing tests
