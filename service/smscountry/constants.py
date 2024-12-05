@@ -1,0 +1,1 @@
+SMS_OTP_TEMPLATE = "User Admin login OTP is {otp} - SMSCOU"

@@ -1,0 +1,91 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:15
+    restart: always
+    ports:
+      - '5432:5432'
+    volumes:
+      - db:/var/lib/postgresql/data/
+    env_file: .env
+    networks:
+      - django-network
+  cache:
+    image: redis:7.2.0
+    restart: always
+    ports:
+      - '6379:6379'
+    command: redis-server --save 20 1 --loglevel debug
+    volumes:
+      - cache:/data
+    networks:
+      - django-network
+  web:
+    build:
+      context: .
+    command: >
+      sh -c "./web_entrypoint.sh"
+    ports:
+      - "8000:8000"
+    env_file: .env
+    volumes:
+      - .:/home/app
+    depends_on:
+      - db
+      - cache
+    networks:
+      - django-network
+  worker:
+    build:
+      context: .
+    command: >
+      sh -c "./worker_entrypoint.sh"
+    env_file: .env
+    volumes:
+      - .:/home/app
+    depends_on:
+      - web
+      - cache
+      - db
+    networks:
+      - django-network
+  celerybeat:
+    build:
+      context: .
+    command: >
+      sh -c "./celerybeat_entrypoint.sh"
+    env_file: .env
+    volumes:
+      - .:/home/app
+    depends_on:
+      - worker
+    networks:
+      - django-network
+  nginx:
+    build: nginx
+    restart: always
+    ports:
+      - "443:443"
+      - "80:80"
+    volumes:
+      - /etc/letsencrypt/live/dev.alltime11.com/fullchain.pem:/etc/nginx/ssl/fullchain.pem
+      - /etc/letsencrypt/live/dev.alltime11.com/privkey.pem:/etc/nginx/ssl/privkey.pem
+    depends_on:
+      - web
+    networks:
+      - django-network
+
+networks:
+  django-network:
+    name: django-network
+
+volumes:
+  db:
+    driver: local
+  cache:
+    driver: local
+#  media_volume:
+#    driver: local
+#  static_volume:
+#    driver: local
