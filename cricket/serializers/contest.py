@@ -16,8 +16,6 @@ class ContestListSerializer(serializers.ModelSerializer):
         write_only=True
     )
 
-    entries_left = serializers.SerializerMethodField(read_only=True)
-
     class Meta:
         model = Contest
         fields = ["id", "name", "prize", "entry_fees", "no_of_teams", "contest_type", "is_active", "match_id",
@@ -28,9 +26,6 @@ class ContestListSerializer(serializers.ModelSerializer):
             'prize': {'read_only': True},
             'status': {'read_only': True},
         }
-
-    def get_entries_left(self, contest):
-        return contest.entries_left
 
     def to_representation(self, instance):
         data = super().to_representation(instance)
@@ -54,8 +49,6 @@ class ContestSerializer(serializers.ModelSerializer):
         source='match',
         write_only=True
     )
-
-    entries_left = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = Contest
@@ -158,6 +151,3 @@ class ContestSerializer(serializers.ModelSerializer):
         attrs["prize_distribution"] = pz
         attrs["is_private"] = False
         return attrs
-
-    def get_entries_left(self, contest):
-        return contest.entries_left
