@@ -13,16 +13,13 @@ class UserTeamListCreateView(ListCreateAPIView):
     serializer_class = UserTeamSerializer
 
     def filter_queryset(self, queryset):
-        queryset = queryset.filter(user=self.request.user)
+        queryset = queryset.filter(user=self.request.user, match__id=self.kwargs.get("match_id"))
         return super().filter_queryset(queryset)
 
     def get(self, request, *args, **kwargs):
-        try:
-            match = Match.objects.get(pk=kwargs.get("match_id"))
-        except ObjectDoesNotExist as obne:
+        if not Match.objects.filter(pk=kwargs.get("match_id")).exists():
             return Response(data={"message": {"userteams": ["match does not exists"]}},
                             status=status.HTTP_404_NOT_FOUND)
-        self.queryset = UserTeam.objects.filter(match=match)
         response = self.list(request, *args, **kwargs)
         response.data = {
             'data': {
@@ -35,17 +32,20 @@ class UserTeamListCreateView(ListCreateAPIView):
         match_id = kwargs.pop("match_id", None)
         serializer = self.get_serializer(data={**request.data, 'match_id': match_id})
         serializer.is_valid(raise_exception=True)
-        self.perform_create(serializer, **kwargs)
+        self.perform_create(serializer, user=request.user)
         headers = self.get_success_headers(serializer.data)
         return Response({'data': {'user_team': serializer.data}}, status=status.HTTP_201_CREATED, headers=headers)
 
     def perform_create(self, serializer, **kwargs):
+        match = serializer.validated_data["match"]
+        user = kwargs.get("user")
+        last_name = match.user_teams.filter(user=user).order_by('-id').values_list('name', flat=True).first() or 'T0'
+        kwargs['name'] = f'T{1 + int(last_name[1:])}'
         serializer.save(**kwargs)
 
     def post(self, request, *args, **kwargs):
         if request.user.is_superuser or request.user.is_staff:
             return Response(status=status.HTTP_403_FORBIDDEN)
-        kwargs["user"] = request.user
         return self.create(request, *args, **kwargs)
 
 

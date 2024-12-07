@@ -122,9 +122,6 @@ class UserTeamSerializer(serializers.ModelSerializer):
         attrs['keeper_count'] = keeper_count
         attrs['players'] = {p_id: {} for p_id in attrs['players']}
 
-        last_name = match.user_teams.filter(user=attrs.get("user")).order_by('-id').values_list('name', flat=True).first() or 'T0'
-        attrs['name'] = f'T{1 + int(last_name[1:])}'
-
         data = super().validate(attrs)
         return data
 
