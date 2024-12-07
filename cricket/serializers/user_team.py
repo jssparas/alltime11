@@ -14,16 +14,9 @@ User = get_user_model()
 
 
 class UserTeamSerializer(serializers.ModelSerializer):
-    # match = MatchSerializer(read_only=True)
     match_id = serializers.PrimaryKeyRelatedField(
         queryset=Match.objects.all(),
         source='match',
-        write_only=True
-    )
-
-    user_id = serializers.PrimaryKeyRelatedField(
-        queryset=User.objects.all(),
-        source='user',
         write_only=True
     )
 
@@ -155,6 +148,7 @@ class UserTeamSerializer(serializers.ModelSerializer):
 
         return data
 
+
 class UserTeamPlayerStatusSerializer(serializers.ModelSerializer):
     players = serializers.SerializerMethodField()
 
@@ -190,6 +184,7 @@ class UserTeamPlayerStatusSerializer(serializers.ModelSerializer):
                 player_info['selected_by'] = f'{int((player_selection_data[player_key] * 100) / total_teams)}%'
             result_data.append(player_info)
         return result_data
+
     class Meta:
         model = UserTeam
         fields = ('match_id', 'players', 'captain_id', 'vice_captain_id')

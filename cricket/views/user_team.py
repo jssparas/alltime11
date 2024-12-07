@@ -32,18 +32,19 @@ class UserTeamListCreateView(ListCreateAPIView):
         return response
 
     def create(self, request, *args, **kwargs):
-        if request.user.is_superuser or request.user.is_staff:
-            return Response(status=status.HTTP_403_FORBIDDEN)
-
-        match_id = kwargs.get("match_id")
-        serializer = self.get_serializer(data={**request.data, **{"match_id": match_id,
-                                                                  'user_id': self.request.user.id}})
+        match_id = kwargs.pop("match_id", None)
+        serializer = self.get_serializer(data={**request.data, 'match_id': match_id})
         serializer.is_valid(raise_exception=True)
-        serializer.save(**kwargs)
+        self.perform_create(serializer, **kwargs)
         headers = self.get_success_headers(serializer.data)
         return Response({'data': {'user_team': serializer.data}}, status=status.HTTP_201_CREATED, headers=headers)
 
+    def perform_create(self, serializer, **kwargs):
+        serializer.save(**kwargs)
+
     def post(self, request, *args, **kwargs):
+        if request.user.is_superuser or request.user.is_staff:
+            return Response(status=status.HTTP_403_FORBIDDEN)
         kwargs["user"] = request.user
         return self.create(request, *args, **kwargs)
 
@@ -76,6 +77,7 @@ class UserTeamRetrieveUpdateView(RetrieveUpdateAPIView):
             }
         }
         return response
+
 
 class UserTeamPlayerStatusView(APIView):
     def get(self, request, *args, **kwargs):
