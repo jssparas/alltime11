@@ -5,6 +5,8 @@ import base64
 from django.conf import settings
 
 logger = logging.getLogger('api')
+
+
 def send_sms(mobile_no="", sms_text=""): # mobile no can be list or single mobile
     '''
         SMS Country API for sending SMS to user

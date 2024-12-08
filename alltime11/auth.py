@@ -14,7 +14,6 @@ LOGGER = logging.getLogger("api")
 
 class AllTimeAuthentication(JWTAuthentication):
     def authenticate(self, request: Request):
-        LOGGER.info("authentication request from middleware")
         if request.META.get('HTTP_DEMO_USER') and settings.DEBUG:
             return User.objects.get(pk=request.META.get('HTTP_DEMO_USER')), None
 

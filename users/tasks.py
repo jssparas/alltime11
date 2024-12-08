@@ -23,10 +23,10 @@ def can_send_otp(mobile):
 		return True
 	else:
 		return False
+
+
 @shared_task(queue='high')
 def send_otp(mobile):
-	# TODO: integrate with message91 or some 3rd party service
-	# TODO: wrap this up in celery task
 	if settings.ENVIRONMENT != 'prod':
 		cache.set(f"{mobile}_{OTP}", '123456', timeout=5 * 60)
 		otp_count = cache.get(f"{mobile}_{OTP_COUNT}", 0)
@@ -43,14 +43,13 @@ def send_otp(mobile):
 	otp_template = SMS_OTP_TEMPLATE.format(otp=otp)
 	status, message = send_sms(mobile, otp_template)
 	if not status:
-		raise ValueError(f"Could not sent Otp on mobile: {mobile}, Error: {message}")
-	high_logger.info(f"Otp successfully sent on mobile no {mobile}")
+		raise ValueError(f"Could not sent OTP on mobile: {mobile}, Error: {message}")
+	high_logger.info(f"OTP successfully sent on mobile no {mobile}")
 	cache.set(f"{mobile}_{OTP_COUNT}", otp_count + 1, timeout=15 * 60)
 	cache.set(f"{mobile}_{OTP}", otp, timeout=5 * 60)
 
 
 def verify_otp(mobile, otp):
-	# TODO: integrate with message91 or some 3rd party service
 	r_otp = cache.get(f"{mobile}_{OTP}")
 	if r_otp == otp:
 		cache.delete(f"{mobile}_{OTP}")

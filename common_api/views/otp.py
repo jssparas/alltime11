@@ -1,17 +1,15 @@
-import os
-
 from django.core.cache import cache
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken, AccessToken
 from rest_framework.permissions import AllowAny
 from rest_framework.views import APIView
-from rest_framework.decorators import permission_classes, authentication_classes
 from rest_framework import status
 
 from common_api.serializers import OtpSerializer
 from users.serializers import UserSerializer
 from users.models import User
 from users import tasks as otp_worker
+
 
 class OtpView(APIView):
     permission_classes = [AllowAny]
