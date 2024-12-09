@@ -1,6 +1,6 @@
 from django.core.cache import cache
 from rest_framework.response import Response
-from rest_framework_simplejwt.tokens import RefreshToken, AccessToken
+from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.permissions import AllowAny
 from rest_framework.views import APIView
 from rest_framework import status
@@ -8,7 +8,7 @@ from rest_framework import status
 from common_api.serializers import OtpSerializer
 from users.serializers import UserSerializer
 from users.models import User
-from users import tasks as otp_worker
+from users import tasks
 
 
 class OtpView(APIView):
@@ -48,10 +48,10 @@ class OtpView(APIView):
                     if is_signup is False:
                         return Response(data={"message": {"user": ["account does not exists, please signup"]}},
                                         status=status.HTTP_403_FORBIDDEN)
-                if otp_worker.can_send_otp(mobile):
+                if tasks.can_send_otp(mobile):
                     # case 1.1: otp can be sent
                     try:
-                        otp = otp_worker.send_otp.delay(mobile)
+                        otp = tasks.send_otp.delay(mobile)
                     except Exception as ex:
                         return Response(data={'message': str(ex)}, status=status.HTTP_400_BAD_REQUEST)
                     if not user and via_ref_code:
@@ -63,7 +63,7 @@ class OtpView(APIView):
                                     status=status.HTTP_403_FORBIDDEN)
             else:
                 # case 2: otp is present, verify it
-                is_verified = otp_worker.verify_otp(mobile, otp)
+                is_verified = tasks.verify_otp(mobile, otp)
                 if not is_verified:
                     return Response(data={'message': {"otp": ["otp verification failed"]}},
                                     status=status.HTTP_401_UNAUTHORIZED)
