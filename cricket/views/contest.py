@@ -113,9 +113,10 @@ class ContestRetrieveUpdateView(RetrieveUpdateAPIView):
 class MyContestListView(APIView):
     def get(self, request, *args, **kwargs):
         match_id = kwargs.get("match_id")
-        subquery = UserTeamContest.objects.filter(user=request.user, contest__match__id=match_id).values(
-            "contest").distinct()
-        contests = Contest.objects.filter(pk__in=Subquery(subquery))
+        # subquery = UserTeamContest.objects.filter(user=request.user, contest__match__id=match_id).values(
+        #     "contest").distinct()
+        # contests = Contest.objects.filter(pk__in=Subquery(subquery))
+        contests = Contest.objects.filter(userteams__user=request.user, match_id=match_id)
         cs = ContestListSerializer(contests, many=True, context={'view': 'mycontests', 'user': request.user})
         return Response(data={
             'data': {
